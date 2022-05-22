@@ -20,15 +20,21 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
-client.connect((err) => {
-  const collection = client.db("test").collection("devices");
-  // perform actions on the collection object
-  client.close();
-});
 
 async function run() {
   try {
     client.connect();
+    const partsCollection = client.db("tech_world").collection("parts");
+
+    // Get All Parts
+    app.get("/parts", async (req, res) => {
+      const query = {};
+      const cursor = partsCollection.find(query);
+      const parts = await cursor.toArray();
+      res.send(parts);
+      //   console.log(parts);
+    });
+
     console.log("Datatbase connected");
   } finally {
   }
