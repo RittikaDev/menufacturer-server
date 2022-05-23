@@ -43,6 +43,14 @@ async function run() {
       res.send(item);
     });
 
+    // Place Order
+    app.post("/part", async (req, res) => {
+      const newPart = req.body;
+      const result = await partsCollection.insertOne(newPart);
+      res.send(result);
+      console.log(result);
+    });
+
     console.log("Datatbase connected");
   } finally {
   }
