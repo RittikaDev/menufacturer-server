@@ -28,6 +28,7 @@ async function run() {
     client.connect();
     const partsCollection = client.db("tech_world").collection("parts");
     const orderCollection = client.db("tech_world").collection("order");
+    const reviewCollection = client.db("tech_world").collection("reviews");
 
     app.post("/create-payment-intent", async (req, res) => {
       const service = req.body;
@@ -49,6 +50,21 @@ async function run() {
       const parts = await cursor.toArray();
       res.send(parts);
       //   console.log(parts);
+    });
+    // Get Reviews
+    app.get("/reviews", async (req, res) => {
+      const query = {};
+      const cursor = reviewCollection.find(query);
+      const review = await cursor.toArray();
+      res.send(review);
+      //   console.log(parts);
+    });
+    // Add Reviews
+    app.post("/reviews", async (req, res) => {
+      const newReview = req.body;
+      const result = await reviewCollection.insertOne(newReview);
+      res.send(result);
+      // console.log(result);
     });
 
     // Dynamic load data
