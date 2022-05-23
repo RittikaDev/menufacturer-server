@@ -48,7 +48,32 @@ async function run() {
       const newPart = req.body;
       const result = await partsCollection.insertOne(newPart);
       res.send(result);
-      console.log(result);
+      // console.log(result);
+    });
+
+    // Load Orders Based On User
+    app.get("/part", async (req, res) => {
+      // const decodedEmail = req.decoded.email;
+      const email = req.query.email;
+      console.log(email);
+      // if (email === decodedEmail) {
+      const query = { email: email };
+      const cursor = partsCollection.find(query);
+      const items = await cursor.toArray();
+      res.send(items);
+      // console.log(items);
+      // } else {
+      //   res.status(403).send({ message: "Access Denied" });
+      // }
+    });
+
+    // Payment with particular id
+    app.get("/part/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const payment = await partsCollection.findOne(query);
+      res.send(payment);
+      console.log(payment);
     });
 
     console.log("Datatbase connected");
