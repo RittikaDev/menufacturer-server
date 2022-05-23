@@ -27,6 +27,7 @@ async function run() {
   try {
     client.connect();
     const partsCollection = client.db("tech_world").collection("parts");
+    const orderCollection = client.db("tech_world").collection("order");
 
     app.post("/create-payment-intent", async (req, res) => {
       const service = req.body;
@@ -61,9 +62,31 @@ async function run() {
     // Place Order
     app.post("/part", async (req, res) => {
       const newPart = req.body;
-      const result = await partsCollection.insertOne(newPart);
+      // console.log(newPart);
+      const result = await orderCollection.insertOne(newPart);
       res.send(result);
-      // console.log(result);
+      console.log(result);
+    });
+
+    // Place Order with Particular ID
+    app.patch("/part/:id", async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      console.log(id);
+      console.log(payment);
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      };
+      // const result = await paymentCollection.insertOne(payment);
+      const updatedBooking = await orderCollection.updateOne(
+        filter,
+        updatedDoc
+      );
+      res.send(updatedBooking);
     });
 
     // Load Orders Based On User
@@ -73,7 +96,7 @@ async function run() {
       console.log(email);
       // if (email === decodedEmail) {
       const query = { email: email };
-      const cursor = partsCollection.find(query);
+      const cursor = orderCollection.find(query);
       const items = await cursor.toArray();
       res.send(items);
       // console.log(items);
@@ -86,7 +109,7 @@ async function run() {
     app.get("/part/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
-      const payment = await partsCollection.findOne(query);
+      const payment = await orderCollection.findOne(query);
       res.send(payment);
       console.log(payment);
     });
