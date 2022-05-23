@@ -35,6 +35,14 @@ async function run() {
       //   console.log(parts);
     });
 
+    // Dynamic load data
+    app.get("/purchase/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const item = await partsCollection.findOne(query);
+      res.send(item);
+    });
+
     console.log("Datatbase connected");
   } finally {
   }
