@@ -47,6 +47,18 @@ async function run() {
     const reviewCollection = client.db("tech_world").collection("reviews");
     const userCollection = client.db("tech_world").collection("users");
 
+    const verifyAdmin = async (req, res, next) => {
+      const requester = req.decoded.email;
+      const requesterAccount = await userCollection.findOne({
+        email: requester,
+      });
+      if (requesterAccount.role === "admin") {
+        next();
+      } else {
+        res.status(403).send({ message: "forbidden" });
+      }
+    };
+
     app.post("/create-payment-intent", async (req, res) => {
       const service = req.body;
       const price = service.price;
@@ -72,6 +84,15 @@ async function run() {
     app.post("/parts", async (req, res) => {
       const newProduct = req.body;
       const result = await partsCollection.insertOne(newProduct);
+      res.send(result);
+      console.log(result);
+    });
+    // Delete A Product(Part)
+    app.delete("/parts/:id", async (req, res) => {
+      const id = req.params.id;
+      // console.log(id);
+      const filter = { _id: ObjectId(id) };
+      const result = await partsCollection.deleteOne(filter);
       res.send(result);
       console.log(result);
     });
@@ -104,6 +125,25 @@ async function run() {
       const newPart = req.body;
       // console.log(newPart);
       const result = await orderCollection.insertOne(newPart);
+      res.send(result);
+      console.log(result);
+    });
+
+    // Get All Orders
+    app.get("/part", async (req, res) => {
+      const query = {};
+      const cursor = orderCollection.find(query);
+      const orders = await cursor.toArray();
+      res.send(orders);
+      console.log(orders);
+    });
+
+    // Delete An Order
+    app.delete("/part/:id", async (req, res) => {
+      const id = req.params.id;
+      // console.log(id);
+      const filter = { _id: ObjectId(id) };
+      const result = await orderCollection.deleteOne(filter);
       res.send(result);
       console.log(result);
     });
@@ -162,22 +202,15 @@ async function run() {
       res.send({ admin: isAdmin });
     });
     // Admin Update User
-    app.put("/user/admin/:email", verifyJWT, async (req, res) => {
+    app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
       const email = req.params.email;
-      const requester = req.decoded.email;
-      const requesterAccount = await userCollection.findOne({
-        email: requester,
-      });
-      if (requesterAccount.role === "admin") {
-        const filter = { email: email };
-        const updateDoc = {
-          $set: { role: "admin" },
-        };
-        const result = await userCollection.updateOne(filter, updateDoc);
-        res.send(result);
-      } else {
-        res.status(403).send({ message: "forbidden" });
-      }
+
+      const filter = { email: email };
+      const updateDoc = {
+        $set: { role: "admin" },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
     });
 
     // Update User Upon Login
