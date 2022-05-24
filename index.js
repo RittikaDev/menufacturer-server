@@ -29,6 +29,7 @@ async function run() {
     const partsCollection = client.db("tech_world").collection("parts");
     const orderCollection = client.db("tech_world").collection("order");
     const reviewCollection = client.db("tech_world").collection("reviews");
+    const userCollection = client.db("tech_world").collection("users");
 
     app.post("/create-payment-intent", async (req, res) => {
       const service = req.body;
@@ -128,6 +129,29 @@ async function run() {
       const payment = await orderCollection.findOne(query);
       res.send(payment);
       console.log(payment);
+    });
+
+    // update users
+    app.put("/user/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const updatedUser = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          address: updatedUser.address,
+          phone: updatedUser.phone,
+          education: updatedUser.education,
+          linkedin: updatedUser.linkedin,
+        },
+      };
+      const result = await userCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
     });
 
     console.log("Datatbase connected");
