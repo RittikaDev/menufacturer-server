@@ -85,13 +85,13 @@ async function run() {
       } else {
         items = await cursor.toArray();
       }
-      res.send(items);
+      res.send(items.reverse());
     });
     // Add A Product(Part)
     app.post("/parts", async (req, res) => {
       const newProduct = req.body;
       const result = await partsCollection.insertOne(newProduct);
-      res.send(result.reverse());
+      res.send(result);
       // console.log(result);
     });
     // Delete A Product(Part)
@@ -221,22 +221,13 @@ async function run() {
       const isAdmin = user.role === "admin";
       res.send({ admin: isAdmin });
     });
-    // Update User Upon Login
-    app.put("/user/:email", async (req, res) => {
-      const email = req.params.email;
+
+    app.post("/login", (req, res) => {
       const user = req.body;
-      const filter = { email: email };
-      const options = { upsert: true };
-      const updateDoc = {
-        $set: user,
-      };
-      const result = await userCollection.updateOne(filter, updateDoc, options);
-      const token = jwt.sign(
-        { email: email },
-        process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "1h" }
-      );
-      res.send({ result, token });
+      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1d",
+      });
+      res.send({ accessToken });
     });
     // Admin Update User
     app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
