@@ -188,7 +188,7 @@ async function run() {
     app.get("/part", async (req, res) => {
       // const decodedEmail = req.decoded.email;
       const email = req.query.email;
-      console.log(email);
+      // console.log(email);
       // if (email === decodedEmail) {
       const query = { email: email };
       const cursor = orderCollection.find(query);
@@ -221,13 +221,24 @@ async function run() {
       const isAdmin = user.role === "admin";
       res.send({ admin: isAdmin });
     });
-
-    app.post("/login", (req, res) => {
+    // Update User Upon Login
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
       const user = req.body;
-      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1d",
-      });
-      res.send({ accessToken });
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      const token = jwt.sign(
+        { email: email },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "1h" }
+      );
+      res.send({ result, token });
+      console.log(result);
+      console.log(token);
     });
     // Admin Update User
     app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
